@@ -1,0 +1,787 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#0d1220">
+<title>Фрактали: Трикутник Серпінського — Клименко Ігор</title>
+<style>
+:root{--c1:#9fb8c4;--c2:#a9b4cc;--c3:#c9b0ac;--c4:#d4c4a0;--bg:#0d1220;--glass:rgba(255,255,255,.06);--bd:rgba(255,255,255,.14);--txt:#cfd6e4}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden;overscroll-behavior:none;touch-action:none;-webkit-tap-highlight-color:transparent;color:#f1f0ff;font-family:'Segoe UI',system-ui,-apple-system,Roboto,Helvetica,Arial,sans-serif;user-select:none;-webkit-user-select:none;
+  background:radial-gradient(ellipse at 25% 20%,#18213a 0%,transparent 60%),radial-gradient(ellipse at 80% 85%,#1f1d30 0%,transparent 60%),#0d1220}
+#bg3d{position:fixed;inset:0;width:100%;height:100%;z-index:0;display:block}
+.vignette{position:fixed;inset:0;z-index:1;pointer-events:none;background:radial-gradient(ellipse at 50% 50%,transparent 45%,rgba(13,18,32,.7) 100%)}
+#bar{position:fixed;top:0;left:0;height:4px;width:0;z-index:20;background:var(--c1);transition:width .8s cubic-bezier(.77,0,.18,1)}
+
+/* ===== slides & transitions ===== */
+#deck{position:fixed;inset:0;z-index:2;perspective:1500px;perspective-origin:50% 50%}
+.slide{--fut:translateZ(-700px) scale(.8) rotateY(-22deg);--pst:translateZ(500px) scale(1.15) rotateY(22deg);
+  position:absolute;inset:0;display:flex;align-items:center;padding:8vh 7vw 10vh;opacity:0;pointer-events:none;
+  transition:transform 1.15s cubic-bezier(.77,0,.18,1),opacity .9s ease,filter .9s ease;will-change:transform,opacity}
+.slide[data-tr=slide]{--fut:translateX(70vw) rotateY(-50deg) translateZ(-300px);--pst:translateX(-70vw) rotateY(50deg) translateZ(-300px)}
+.slide[data-tr=flip]{--fut:translateY(40vh) rotateX(-65deg) translateZ(-300px);--pst:translateY(-40vh) rotateX(65deg) translateZ(-300px)}
+.slide[data-tr=zoom]{--fut:scale(.25) rotateZ(10deg);--pst:scale(2.4) rotateZ(-10deg)}
+.slide.future{transform:var(--fut);filter:blur(12px)}
+.slide.past{transform:var(--pst);filter:blur(12px)}
+.slide.active{opacity:1;pointer-events:auto;transform:none;filter:none}
+
+.decor{position:absolute;inset:0;overflow:hidden;pointer-events:none}
+.decor{opacity:.5}
+.tri{position:absolute;clip-path:polygon(50% 0,0 100%,100% 100%);animation:float var(--dur,9s) ease-in-out infinite;animation-delay:var(--dl,0s)}
+@keyframes float{0%,100%{translate:0 0}50%{translate:0 -26px}}
+
+.content{position:relative;max-width:min(48vw,820px)}
+.wrap{position:relative;width:100%;display:grid;grid-template-columns:1.05fr 1fr;gap:4vw;align-items:center}
+.wrap .content{max-width:none}
+.tag{display:inline-block;font-size:clamp(.7rem,1vw,.95rem);letter-spacing:.22em;text-transform:uppercase;color:var(--c1);padding:.5em 1.1em;border:1px solid rgba(159,184,196,.4);border-radius:99px;background:rgba(159,184,196,.08);margin-bottom:2.2vh}
+h1{font-size:clamp(2.3rem,min(6.3vw,11vh),6.2rem);line-height:1.05;font-weight:800;letter-spacing:-.02em;perspective:900px}
+h2{font-size:clamp(1.9rem,min(4.3vw,8vh),4rem);line-height:1.08;font-weight:800;letter-spacing:-.015em;margin-bottom:2vh;
+  color:#eef1f7}
+.lead{font-size:clamp(1rem,1.5vw,1.4rem);line-height:1.6;color:var(--txt);margin-bottom:2.4vh}
+.lead b{color:#fff}
+.sub{font-size:clamp(1.05rem,1.7vw,1.6rem);color:var(--txt);margin:2.5vh 0 3.5vh;line-height:1.5}
+.word{display:inline-block;white-space:nowrap}
+.ch{display:inline-block;transform-origin:50% 100%}
+.slide.active .ch{animation:chIn 1s cubic-bezier(.2,.9,.2,1) both;animation-delay:calc(var(--j)*.04s + .35s)}
+@keyframes chIn{from{opacity:0;transform:translateY(.7em) rotateX(-95deg) scale(.7);filter:blur(8px)}to{opacity:1;transform:none;filter:none}}
+.slide:not(.active) .ch{opacity:1}
+
+.rise{opacity:1}
+.slide.active .rise{animation:rise 1s cubic-bezier(.2,.8,.2,1) both;animation-delay:calc(var(--i,0)*.12s + .3s)}
+@keyframes rise{from{opacity:0;translate:0 46px;filter:blur(10px)}to{opacity:1;translate:0 0;filter:blur(0)}}
+
+.author{display:inline-flex;flex-direction:column;gap:.25em;padding:1.4vh 1.8vw;border-radius:16px;background:var(--glass);border:1px solid var(--bd);backdrop-filter:blur(12px);position:relative;overflow:hidden}
+.author::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--c1)}
+.author span{font-size:clamp(.7rem,1vw,.9rem);letter-spacing:.2em;text-transform:uppercase;color:var(--txt)}
+.author strong{font-size:clamp(1.3rem,2.4vw,2.3rem);color:#f1ece0}
+.author.big{padding:2.2vh 3vw;align-items:center;text-align:center}
+.author.big::before{display:none}
+.author.big strong{font-size:clamp(1.6rem,3.6vw,3.4rem)}
+.hint{margin-top:3.5vh;font-size:clamp(.85rem,1.2vw,1.1rem);color:var(--txt)}
+kbd{display:inline-block;padding:.15em .7em;border-radius:8px;border:1px solid var(--bd);background:rgba(255,255,255,.1);font-family:inherit;color:#fff;box-shadow:0 3px 0 rgba(255,255,255,.12);animation:pulse 1.8s ease-in-out infinite}
+@keyframes pulse{50%{opacity:.7}}
+
+.list{display:grid;gap:1.3vh}
+.item{display:flex;gap:1.1rem;align-items:flex-start;padding:1.5vh 1.3vw;border-radius:16px;background:var(--glass);border:1px solid var(--bd);backdrop-filter:blur(10px);font-size:clamp(.9rem,1.3vw,1.2rem);line-height:1.5;color:var(--txt);transition:transform .3s,border-color .3s,background .3s}
+.item:hover{transform:translateX(10px);border-color:var(--c2);background:rgba(169,180,204,.12)}
+.item b{color:#fff}
+.ic{flex:none;width:2.3em;height:2.3em;border-radius:12px;display:grid;place-items:center;font-weight:800;color:#e6edf2;background:rgba(159,184,196,.16);border:1px solid rgba(159,184,196,.35)}
+.chips{display:flex;flex-wrap:wrap;gap:.6rem;margin-top:2.2vh}
+.chip{padding:.45em 1em;border-radius:99px;font-size:clamp(.75rem,1.05vw,1rem);border:1px solid var(--bd);background:rgba(255,255,255,.05);color:#fff}
+.chip:nth-child(odd){border-color:rgba(159,184,196,.5)}
+.chip:nth-child(even){border-color:rgba(201,176,172,.5)}
+
+.panel{border-radius:24px;background:rgba(18,26,46,.55);border:1px solid var(--bd);backdrop-filter:blur(12px);box-shadow:0 30px 80px rgba(0,0,0,.5),inset 0 0 60px rgba(90,110,160,.1)}
+.timeline{padding:3vh 2vw;display:grid;gap:2.4vh;position:relative}
+.timeline::before{content:"";position:absolute;left:calc(2vw + 5.3em);top:4vh;bottom:4vh;width:2px;background:var(--c1)}
+.ev{display:grid;grid-template-columns:5.3em 1fr;gap:1.6em;align-items:start;position:relative}
+.ev::after{content:"";position:absolute;left:calc(5.3em - .4em + 1px);top:.45em;width:.9em;height:.9em;border-radius:50%;background:var(--bg);border:3px solid var(--c1)}
+.ev .y{font-weight:800;font-size:clamp(1rem,1.6vw,1.5rem);color:var(--c4);text-align:right}
+.ev p{font-size:clamp(.85rem,1.2vw,1.1rem);line-height:1.5;color:var(--txt);padding-left:.8em}
+.fact{margin-top:2vh;padding:1.6vh 1.4vw;border-radius:14px;background:rgba(212,196,160,.08);border:1px solid rgba(212,196,160,.25);font-size:clamp(.8rem,1.1vw,1rem);line-height:1.5;color:#f5e7bd}
+
+.cv{position:relative;height:min(68vh,44vw);overflow:hidden}
+.cv canvas{position:absolute;inset:0;width:100%;height:100%}
+.cap{position:absolute;left:0;right:0;bottom:0;padding:1.4vh 1.2vw;display:flex;justify-content:space-between;align-items:center;gap:.6rem;font-size:clamp(.78rem,1.05vw,1rem);color:var(--txt);background:linear-gradient(transparent,rgba(13,18,32,.85))}
+.cap b{color:#fff}
+.btns{display:flex;gap:.4rem}
+.btn{cursor:pointer;border:1px solid var(--bd);background:rgba(255,255,255,.1);color:#fff;border-radius:10px;padding:.35em .8em;font-size:1em;font-family:inherit;transition:background .2s,transform .2s}
+.btn:hover{background:rgba(169,180,204,.35);transform:translateY(-2px)}
+
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:2vw}
+.card{padding:3vh 1.8vw;border-radius:22px;background:var(--glass);border:1px solid var(--bd);backdrop-filter:blur(12px);transition:transform .25s ease,border-color .3s,box-shadow .3s;transform-style:preserve-3d;position:relative;overflow:hidden}
+.card:hover{border-color:var(--c2);box-shadow:0 20px 60px rgba(90,110,160,.18)}
+.card::after{content:"";position:absolute;inset:0;background:radial-gradient(circle at var(--gx,50%) var(--gy,0%),rgba(255,255,255,.14),transparent 55%);pointer-events:none}
+.card .big{font-size:clamp(2rem,4.6vw,4.4rem);font-weight:800;line-height:1;margin-bottom:.4em;color:var(--c1);transform:translateZ(40px)}
+.card h3{font-size:clamp(1rem,1.5vw,1.4rem);margin-bottom:.4em;color:#fff;transform:translateZ(25px)}
+.card p{font-size:clamp(.82rem,1.15vw,1.05rem);line-height:1.5;color:var(--txt)}
+.card .em{font-size:clamp(1.8rem,3vw,3rem);margin-bottom:.3em;transform:translateZ(40px);display:block}
+.wide{width:100%}
+.head{margin-bottom:3vh}
+
+.pt{font-family:ui-monospace,Consolas,'Courier New',monospace;text-align:center;line-height:1.55;font-size:clamp(.8rem,1.2vw,1.1rem);padding:1.6vh 1vw;margin-top:2vh}
+.pt div{display:flex;justify-content:center;gap:.8em}
+.pt span{display:inline-block;min-width:1.6em;opacity:.45}
+.pt span.odd{opacity:1;color:var(--c1);text-shadow:0 0 10px var(--c1);font-weight:700}
+
+.center{text-align:center;max-width:none;margin:0 auto;display:flex;flex-direction:column;align-items:center}
+.center h1{margin-bottom:1vh}
+
+/* ===== UI ===== */
+.nav{position:fixed;left:0;right:0;bottom:2.4vh;z-index:20;display:flex;justify-content:center;align-items:center;gap:1.2rem;pointer-events:none}
+.nav>*{pointer-events:auto}
+#dots{display:flex;gap:.55rem}
+#dots button{width:10px;height:10px;border-radius:50%;border:none;cursor:pointer;background:rgba(255,255,255,.25);transition:all .4s}
+#dots button.on{width:34px;border-radius:6px;background:var(--c1)}
+.arrow{width:42px;height:42px;border-radius:50%;border:1px solid var(--bd);background:rgba(255,255,255,.08);color:#fff;cursor:pointer;font-size:1.1rem;backdrop-filter:blur(8px);transition:all .25s}
+.arrow:hover{background:rgba(169,180,204,.4);transform:scale(1.12)}
+#count{position:fixed;right:2.2vw;top:2.4vh;z-index:20;font-size:.95rem;letter-spacing:.15em;color:var(--txt);font-variant-numeric:tabular-nums}
+#count b{color:#fff;font-size:1.3rem}
+#help{position:fixed;left:2.2vw;bottom:3vh;z-index:20;font-size:.8rem;color:rgba(201,198,230,.7)}
+#fs{position:fixed;right:2.2vw;bottom:2.6vh;z-index:20;font-size:.9rem;padding:.4em .9em}
+
+.slide{padding-left:max(7vw,env(safe-area-inset-left));padding-right:max(7vw,env(safe-area-inset-right))}
+
+/* ===== loader ===== */
+#loader{position:fixed;inset:0;z-index:200;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2vh;text-align:center;padding:4vh 6vw;
+  background:radial-gradient(ellipse at 30% 20%,#18213a,transparent 60%),radial-gradient(ellipse at 80% 85%,#1f1d30,transparent 60%),#0d1220;
+  transition:opacity .9s ease,transform .9s cubic-bezier(.77,0,.18,1),filter .9s ease}
+#loader.hide{opacity:0;transform:scale(1.6);filter:blur(14px);pointer-events:none}
+.ld-tri{width:min(26vh,34vw);perspective:600px}
+.ld-tri svg{width:100%;height:auto;animation:spin3d 3.2s linear infinite}
+@keyframes spin3d{to{transform:rotateY(360deg)}}
+#loader h3{font-size:clamp(1.1rem,3.6vh,1.8rem);font-weight:800;color:#eef1f7}
+.ld-bar{width:min(60vw,420px);height:8px;border-radius:99px;background:rgba(255,255,255,.1);overflow:hidden}
+.ld-bar i{display:block;height:100%;width:0;border-radius:99px;background:var(--c1);transition:width .25s}
+#ld-txt{font-size:clamp(.8rem,2.4vh,1rem);color:var(--txt);min-height:1.4em}
+#ld-start{font-size:clamp(.95rem,3vh,1.3rem);padding:.7em 1.8em;border-radius:99px;background:rgba(159,184,196,.18);border-color:rgba(255,255,255,.4);animation:pulse 1.8s ease-in-out infinite}
+#ld-start[hidden]{display:none}
+.ld-by{display:flex;flex-direction:column;gap:.35em;font-size:clamp(.75rem,2.2vh,.95rem);color:var(--txt)}
+.ld-by b{font-size:clamp(1.2rem,4.2vh,1.9rem);color:#f1ece0;font-weight:700;letter-spacing:.02em}
+.ld-rot{font-size:clamp(.7rem,2vh,.9rem);color:rgba(201,198,230,.75)}
+
+/* ===== rotate hint ===== */
+#rot{position:fixed;inset:0;z-index:150;display:none;flex-direction:column;align-items:center;justify-content:center;gap:1.6rem;background:rgba(13,18,32,.97);text-align:center;padding:2rem;font-size:1.15rem;color:#fff}
+#rot .ph{font-size:4rem;animation:rotp 2.2s ease-in-out infinite}
+@keyframes rotp{0%,25%{transform:rotate(0)}65%,100%{transform:rotate(-90deg)}}
+@media (orientation:portrait) and (max-width:900px) and (pointer:coarse){#rot{display:flex}}
+
+@media (max-width:900px) and (orientation:portrait){
+  .slide{padding:7vh 6vw 12vh;overflow-y:auto;align-items:flex-start}
+  .content{max-width:100%}
+  .wrap{grid-template-columns:1fr;gap:3vh;margin:auto 0}
+  .cv{height:42vh}
+  #help{display:none}
+  .timeline::before,.ev::after{display:none}
+}
+
+/* ===== phone landscape (short screens) ===== */
+@media (max-height:520px){
+  .slide{padding-top:4vh;padding-bottom:14vh;padding-left:max(5vw,env(safe-area-inset-left));padding-right:max(5vw,env(safe-area-inset-right))}
+  .content{max-width:min(52vw,820px)}
+  .tag{margin-bottom:1vh;padding:.3em .9em;font-size:.58rem}
+  h1{font-size:clamp(1.5rem,9vh,3rem)}
+  h2{font-size:clamp(1.25rem,9vh,2.2rem);margin-bottom:1vh}
+  .lead{font-size:.78rem;line-height:1.4;margin-bottom:1vh}
+  .sub{font-size:.82rem;margin:1vh 0 1.6vh;line-height:1.35}
+  .list{gap:.8vh}
+  .item{padding:.9vh 1vw;font-size:.7rem;gap:.6rem;line-height:1.35;border-radius:12px}
+  .ic{width:1.9em;height:1.9em;font-size:.68rem;border-radius:9px}
+  .chips{margin-top:1vh;gap:.35rem}
+  .chip{font-size:.6rem;padding:.25em .7em}
+  .fact{display:none}
+  .hint{margin-top:1.4vh;font-size:.68rem}
+  .author{padding:.8vh 1.4vw;border-radius:12px}
+  .author span{font-size:.52rem}
+  .author strong{font-size:1.1rem}
+  .author.big{padding:1.2vh 2.4vw}
+  .author.big strong{font-size:1.35rem}
+  .cv{height:72vh;border-radius:16px}
+  .cap{font-size:.62rem;padding:.8vh .8vw}
+  .btn{padding:.2em .6em;font-size:.72rem;border-radius:8px}
+  .grid2{gap:1.4vw}
+  .head{margin-bottom:1.4vh}
+  .card{padding:1.8vh 1.2vw;border-radius:14px}
+  .card .big{font-size:1.5rem;margin-bottom:.2em}
+  .card h3{font-size:.8rem;margin-bottom:.2em}
+  .card p{font-size:.6rem;line-height:1.35}
+  .card .em{font-size:1.3rem;margin-bottom:.1em}
+  .timeline{padding:1.6vh 1.2vw;gap:1.1vh;border-radius:16px}
+  .ev p{font-size:.64rem;line-height:1.35}
+  .ev .y{font-size:.75rem}
+  .pt{font-size:.56rem;padding:.8vh .6vw;margin-top:1vh;line-height:1.4}
+  .nav{bottom:1.2vh;gap:.7rem}
+  .arrow{width:32px;height:32px;font-size:.75rem}
+  #dots{gap:.4rem}
+  #dots button{width:7px;height:7px}
+  #dots button.on{width:22px}
+  #help{display:none}
+  #count{top:1.6vh;font-size:.7rem}
+  #count b{font-size:.9rem}
+  #fs{bottom:1.2vh;padding:.15em .6em;font-size:.75rem}
+  .tri{opacity:.5}
+}
+</style>
+</head>
+<body>
+<canvas id="bg3d"></canvas>
+<div class="vignette"></div>
+<div id="bar"></div>
+<div id="count"><b id="cn">01</b> / <span id="ct">10</span></div>
+
+<main id="deck">
+
+<!-- 1. ТИТУЛЬНИЙ -->
+<section class="slide" data-tr="warp">
+  <div class="decor" data-n="10"></div>
+  <div class="content" data-depth="8">
+    <div class="tag rise" style="--i:0">▲ Цікава математика · 7 клас</div>
+    <h1>
+      <span class="letters" data-text="Фрактали:"></span><br>
+      <span class="letters" data-text="Трикутник Серпінського" data-hue="1"></span>
+    </h1>
+    <p class="sub rise" style="--i:7">Як з дуже простого правила народжується нескінченна краса</p>
+    <div class="author rise" style="--i:9"><span>Роботу виконав</span><strong>Клименко Ігор</strong></div>
+    <p class="hint rise" style="--i:11">Натисни <kbd>Пробіл</kbd>, щоб почати →</p>
+  </div>
+</section>
+
+<!-- 2. ЩО ТАКЕ ФРАКТАЛ -->
+<section class="slide" data-tr="slide">
+  <div class="decor" data-n="9"></div>
+  <div class="content" data-depth="6">
+    <div class="tag rise" style="--i:0">Розділ 01</div>
+    <h2 class="rise" style="--i:1">Що таке фрактал?</h2>
+    <p class="lead rise" style="--i:2"><b>Фрактал</b> — це візерунок, який повторюється сам у собі. Придивись ближче — і побачиш те саме, тільки менше.</p>
+    <div class="list">
+      <div class="item rise" style="--i:3"><span class="ic">🌳</span><div><b>Дерево.</b> Велика гілка ділиться на менші, а ті — на ще менші.</div></div>
+      <div class="item rise" style="--i:4"><span class="ic">🌿</span><div><b>Папороть.</b> Кожен маленький листочок схожий на весь великий листок.</div></div>
+      <div class="item rise" style="--i:5"><span class="ic">❄️</span><div><b>Сніжинка.</b> Її промінці повторюють один одного.</div></div>
+    </div>
+    <p class="fact rise" style="--i:6">Слово «фрактал» придумав у 1975 році математик Бенуа Мандельброт. Воно означає «подрібнений».</p>
+  </div>
+</section>
+
+<!-- 3. СЕРПІНСЬКИЙ -->
+<section class="slide" data-tr="flip">
+  <div class="decor" data-n="9"></div>
+  <div class="wrap">
+    <div class="content" data-depth="6">
+      <div class="tag rise" style="--i:0">Розділ 02</div>
+      <h2 class="rise" style="--i:1">Вацлав Серпінський</h2>
+      <p class="lead rise" style="--i:2">Відомий польський математик. Понад 100 років тому він описав фігуру, яку сьогодні називають <b>трикутником Серпінського</b>.</p>
+      <p class="fact rise" style="--i:3">Він написав понад 700 наукових праць, а на Місяці є кратер, названий його ім’ям!</p>
+    </div>
+    <div class="panel timeline rise" style="--i:3" data-depth="14">
+      <div class="ev"><div class="y">1882</div><p>Народився у Варшаві.</p></div>
+      <div class="ev"><div class="y">1908–14</div><p>Викладав у Львівському університеті.</p></div>
+      <div class="ev"><div class="y">1915</div><p>Описав свій знаменитий трикутник.</p></div>
+      <div class="ev"><div class="y">1969</div><p>Помер у Варшаві.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- 4. ПОБУДОВА -->
+<section class="slide" data-tr="warp">
+  <div class="decor" data-n="8"></div>
+  <div class="wrap">
+    <div class="content" data-depth="6">
+      <div class="tag rise" style="--i:0">Розділ 03</div>
+      <h2 class="rise" style="--i:1">Як його намалювати</h2>
+      <div class="list">
+        <div class="item rise" style="--i:2"><span class="ic">1</span><div>Намалюй великий <b>трикутник</b> і зафарбуй його.</div></div>
+        <div class="item rise" style="--i:3"><span class="ic">2</span><div>Познач <b>середини сторін</b> і з’єднай їх. Вийде 4 маленькі трикутники.</div></div>
+        <div class="item rise" style="--i:4"><span class="ic">3</span><div><b>Вирізай</b> середній трикутник — він стане порожнім.</div></div>
+        <div class="item rise" style="--i:5"><span class="ic">4</span><div>З кожним трикутником, що залишився, роби <b>те саме</b>. І знову, і знову!</div></div>
+      </div>
+    </div>
+    <div class="panel cv rise" style="--i:3" data-depth="14">
+      <canvas id="c-build"></canvas>
+      <div class="cap"><span id="build-lbl"></span>
+        <div class="btns"><button class="btn" id="b-prev">◀</button><button class="btn" id="b-auto">⏸</button><button class="btn" id="b-next">▶</button></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 5. ВЛАСТИВОСТІ -->
+<section class="slide" data-tr="zoom">
+  <div class="decor" data-n="10"></div>
+  <div class="content wide" data-depth="5" style="max-width:none">
+    <div class="head">
+      <div class="tag rise" style="--i:0">Розділ 04</div>
+      <h2 class="rise" style="--i:1;margin-bottom:0">Цікаві факти</h2>
+    </div>
+    <div class="grid2">
+      <div class="card rise" style="--i:2"><div class="big">3 → 9 → 27</div><h3>Трикутників все більше</h3><p>На кожному кроці їх стає втричі більше, і вони дедалі менші.</p></div>
+      <div class="card rise" style="--i:3"><div class="big">¾</div><h3>Фігура «худне»</h3><p>З кожним кроком зафарбованої частини залишається лише три чверті від попередньої.</p></div>
+      <div class="card rise" style="--i:4"><div class="big">∞</div><h3>Нескінченний край</h3><p>Країв стає все більше, і якщо продовжувати вічно, їхня довжина росте без кінця.</p></div>
+      <div class="card rise" style="--i:5"><div class="big">🔍</div><h3>Копія в копії</h3><p>Збільш будь-який шматочок — і побачиш такий самий трикутник, як і цілий.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- 6. ГРА ХАОСУ -->
+<section class="slide" data-tr="slide">
+  <div class="decor" data-n="8"></div>
+  <div class="wrap">
+    <div class="content" data-depth="6">
+      <div class="tag rise" style="--i:0">Розділ 05</div>
+      <h2 class="rise" style="--i:1">Гра хаосу</h2>
+      <p class="lead rise" style="--i:2">Випадковість створює порядок. Здається неймовірним, але подивись!</p>
+      <div class="list">
+        <div class="item rise" style="--i:3"><span class="ic">1</span><div>Познач <b>три вершини</b> трикутника й одну довільну точку.</div></div>
+        <div class="item rise" style="--i:4"><span class="ic">2</span><div><b>Навмання</b> обери одну з вершин, як ніби кидаєш кубик.</div></div>
+        <div class="item rise" style="--i:5"><span class="ic">3</span><div>Постав нову точку <b>посередині</b> між поточною й обраною вершиною.</div></div>
+        <div class="item rise" style="--i:6"><span class="ic">4</span><div>Повторюй тисячі разів — і проявиться <b>трикутник Серпінського</b>!</div></div>
+      </div>
+    </div>
+    <div class="panel cv rise" style="--i:3" data-depth="14">
+      <canvas id="c-chaos"></canvas>
+      <div class="cap"><span id="chaos-lbl"></span><div class="btns"><button class="btn" id="chaos-reset">↻ Заново</button></div></div>
+    </div>
+  </div>
+</section>
+
+
+<!-- 8. 3D ТЕТРАЕДР -->
+<section class="slide" data-tr="warp">
+  <div class="decor" data-n="6"></div>
+  <div class="content" data-depth="6">
+    <div class="tag rise" style="--i:0">Розділ 06 · 3D</div>
+    <h2 class="rise" style="--i:1">Піраміда Серпінського</h2>
+    <p class="lead rise" style="--i:2">Те саме, але у просторі: піраміду складаємо з <b>чотирьох менших пірамід</b>, а кожну з них — знову з чотирьох.</p>
+    <div class="list">
+      <div class="item rise" style="--i:3"><span class="ic">4×</span><div>Пірамід щоразу <b>у 4 рази більше</b>: 4, 16, 64…</div></div>
+      <div class="item rise" style="--i:4"><span class="ic">🕳</span><div>Піраміда стає все більш <b>«дірявою»</b>, ніби її з’їдає міль.</div></div>
+      <div class="item rise" style="--i:5"><span class="ic">!</span><div>Дивно, але площа її поверхні <b>не змінюється</b>.</div></div>
+    </div>
+    <p class="hint rise" style="--i:6">🖱 Тягни мишею або пальцем — і обертай піраміду.</p>
+  </div>
+</section>
+
+<!-- 9. ЗАСТОСУВАННЯ -->
+<section class="slide" data-tr="zoom">
+  <div class="decor" data-n="10"></div>
+  <div class="content wide" data-depth="5" style="max-width:none">
+    <div class="head">
+      <div class="tag rise" style="--i:0">Розділ 07</div>
+      <h2 class="rise" style="--i:1;margin-bottom:0">Де це зустрічається</h2>
+    </div>
+    <div class="grid2">
+      <div class="card rise" style="--i:2"><span class="em">📡</span><h3>Антени телефонів</h3><p>Антени такої форми ловлять сигнал на кількох частотах одразу.</p></div>
+      <div class="card rise" style="--i:3"><span class="em">🎮</span><h3>Кіно та ігри</h3><p>Фрактали допомагають малювати на комп’ютері гори, хмари та дерева.</p></div>
+      <div class="card rise" style="--i:4"><span class="em">🐚</span><h3>Природа</h3><p>Схожий візерунок можна побачити на раковині молюска-конуса.</p></div>
+      <div class="card rise" style="--i:5"><span class="em">🧩</span><h3>Головоломки</h3><p>Ходи гри «Ханойські вежі» складаються у фігуру, схожу на трикутник Серпінського.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- 10. ВИСНОВКИ -->
+<section class="slide" data-tr="warp">
+  <div class="decor" data-n="12"></div>
+  <div class="content center" data-depth="8">
+    <div class="tag rise" style="--i:0">Підсумок</div>
+    <h1><span class="letters" data-text="Дякую за увагу!"></span></h1>
+    <p class="sub rise" style="--i:6;max-width:44em">З дуже простого правила можна створити нескінченно складну красу. Математика вміє дивувати!</p>
+    <div class="author big rise" style="--i:8"><span>Роботу виконав</span><strong>Клименко Ігор</strong></div>
+    <p class="hint rise" style="--i:10">Є питання? · <kbd>←</kbd> назад · <kbd>Home</kbd> на початок</p>
+  </div>
+</section>
+
+</main>
+
+<div class="nav">
+  <button class="arrow" id="prev" aria-label="Назад">◀</button>
+  <div id="dots"></div>
+  <button class="arrow" id="next" aria-label="Далі">▶</button>
+</div>
+<div id="help"><kbd style="animation:none">Пробіл</kbd> далі · <kbd style="animation:none">←</kbd> <kbd style="animation:none">→</kbd> навігація · <kbd style="animation:none">F</kbd> повний екран</div>
+<button class="btn" id="fs">⛶</button>
+
+<div id="rot"><div class="ph">📱</div><div>Поверни телефон горизонтально<br><small style="opacity:.7">презентація створена для альбомного режиму</small></div></div>
+
+<div id="loader">
+  <div class="ld-tri"><svg id="ld-svg" viewBox="0 0 100 88" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="lg" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stop-color="#9fb8c4"/><stop offset=".5" stop-color="#a9b4cc"/><stop offset="1" stop-color="#c9b0ac"/></linearGradient></defs><path id="ld-path" fill="url(#lg)"/></svg></div>
+  <h3>Фрактали: Трикутник Серпінського</h3>
+  <div class="ld-bar"><i id="ld-fill"></i></div>
+  <div id="ld-txt">Завантаження… 0%</div>
+  <button class="btn" id="ld-start" hidden>▶ Почати на весь екран</button>
+  <p class="ld-by"><span>Роботу виконав</span><b>Клименко Ігор</b></p>
+  <p class="ld-rot">📱 На телефоні тримай екран горизонтально</p>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+(function(){
+'use strict';
+const $=(s,r=document)=>r.querySelector(s), $$=(s,r=document)=>Array.from(r.querySelectorAll(s));
+const slides=$$('.slide'), N=slides.length;
+let cur=-1, api=null;
+
+/* ---------- letters splitter ---------- */
+let letterIdx=0;
+$$('.letters').forEach(el=>{
+  const text=el.dataset.text, hue=el.dataset.hue?1:0; let j=0;
+  text.split(' ').forEach((w,wi,arr)=>{
+    const ws=document.createElement('span'); ws.className='word';
+    for(const c of w){
+      const s=document.createElement('span'); s.className='ch'; s.textContent=c; s.style.setProperty('--j',j+(hue?9:0));
+      s.style.color=hue?'#bfd0da':'#eef1f7';
+      ws.appendChild(s); j++;
+    }
+    el.appendChild(ws); if(wi<arr.length-1) el.appendChild(document.createTextNode(' '));
+  });
+});
+
+/* ---------- parallax decor ---------- */
+slides.forEach(s=>{
+  const d=$('.decor',s); if(!d) return;
+  const n=+d.dataset.n||8;
+  for(let i=0;i<n;i++){
+    const t=document.createElement('i'); t.className='tri';
+    const size=30+Math.random()*200, hue=200+Math.random()*30;
+    t.style.width=size+'px'; t.style.height=size*.87+'px';
+    t.style.left=(Math.random()*100)+'%'; t.style.top=(Math.random()*100)+'%';
+    t.style.rotate=(Math.random()*360)+'deg';
+    t.style.background=`linear-gradient(135deg,hsla(${hue},25%,70%,.14),hsla(${hue+20},20%,60%,.03))`;
+    t.style.opacity=(.35+Math.random()*.6).toFixed(2);
+    t.style.setProperty('--dur',(6+Math.random()*9)+'s');
+    t.style.setProperty('--dl','-'+(Math.random()*8)+'s');
+    t.dataset.depth=(size*.4+8).toFixed(0);
+    d.appendChild(t);
+  }
+});
+slides.forEach(s=>{ s._px=$$('[data-depth]',s); });
+
+let tmx=0,tmy=0,mx=0,my=0;
+addEventListener('pointermove',e=>{tmx=(e.clientX/innerWidth-.5)*2;tmy=(e.clientY/innerHeight-.5)*2});
+addEventListener('deviceorientation',e=>{ if(e.gamma==null)return; tmx=Math.max(-1,Math.min(1,e.gamma/25)); tmy=Math.max(-1,Math.min(1,((e.beta||45)-45)/25)); });
+function parallax(){
+  mx+=(tmx-mx)*.06; my+=(tmy-my)*.06;
+  const s=slides[cur]; if(!s) return;
+  s._px.forEach(el=>{const d=+el.dataset.depth; el.style.transform=`translate3d(${(-mx*d).toFixed(2)}px,${(-my*d).toFixed(2)}px,0)`;});
+}
+
+/* ---------- tilt cards ---------- */
+$$('.card').forEach(c=>{
+  c.addEventListener('pointermove',e=>{
+    const r=c.getBoundingClientRect(), x=(e.clientX-r.left)/r.width, y=(e.clientY-r.top)/r.height;
+    c.style.transform=`perspective(800px) rotateX(${(.5-y)*14}deg) rotateY(${(x-.5)*14}deg) scale(1.03)`;
+    c.style.setProperty('--gx',x*100+'%'); c.style.setProperty('--gy',y*100+'%');
+  });
+  c.addEventListener('pointerleave',()=>{c.style.transform='';});
+});
+
+/* ---------- count up ---------- */
+function countUp(el){
+  const to=+el.dataset.to, dec=+el.dataset.dec||0, t0=performance.now();
+  (function f(now){ const p=Math.min(1,(now-t0)/1800), e=1-Math.pow(1-p,3);
+    el.textContent=(to*e).toFixed(dec).replace('.',','); if(p<1) requestAnimationFrame(f); })(t0);
+}
+
+/* ================= 2D DEMOS ================= */
+function setupCanvas(cv){
+  const dpr=Math.min(devicePixelRatio||1,2), W=cv.clientWidth, H=cv.clientHeight;
+  cv.width=W*dpr; cv.height=H*dpr;
+  const ctx=cv.getContext('2d'); ctx.setTransform(dpr,0,0,dpr,0,0);
+  return {ctx,W,H,dpr};
+}
+function triGeom(W,H){
+  const padT=22,padB=62, availH=H-padT-padB;
+  const side=Math.min(W-40,availH/.8660254), h=side*.8660254;
+  const ax=W/2, ay=padT+(availH-h)/2;
+  return {A:[ax,ay],B:[ax-side/2,ay+h],C:[ax+side/2,ay+h]};
+}
+const mid=(p,q)=>[(p[0]+q[0])/2,(p[1]+q[1])/2];
+function rec(a,b,c,n,out){
+  if(n===0){out.push(a,b,c);return}
+  const ab=mid(a,b),bc=mid(b,c),ca=mid(c,a);
+  rec(a,ab,ca,n-1,out);rec(ab,b,bc,n-1,out);rec(ca,bc,c,n-1,out);
+}
+
+/* --- construction demo --- */
+const build=(function(){
+  const cv=$('#c-build'), lbl=$('#build-lbl'), MAX=7; let S,raf=0,L=0,t=0,wait=0,auto=true,last=0;
+  const ease=x=>x<.5?2*x*x:1-Math.pow(-2*x+2,2)/2;
+  function draw(){
+    const {ctx,W,H}=S, g=triGeom(W,H);
+    ctx.clearRect(0,0,W,H); ctx.globalCompositeOperation='source-over';
+    const out=[]; rec(g.A,g.B,g.C,L,out);
+    const grad=ctx.createLinearGradient(g.B[0],g.B[1],g.C[0],g.A[1]);
+    grad.addColorStop(0,'#9fb8c4');grad.addColorStop(.5,'#a9b4cc');grad.addColorStop(1,'#c9b0ac');
+    ctx.beginPath();
+    for(let i=0;i<out.length;i+=3){const a=out[i],b=out[i+1],c=out[i+2];ctx.moveTo(a[0],a[1]);ctx.lineTo(b[0],b[1]);ctx.lineTo(c[0],c[1]);ctx.closePath();}
+    ctx.fillStyle=grad; ctx.fill();
+    if(L<MAX){
+      const e=ease(t); ctx.globalCompositeOperation='destination-out'; ctx.beginPath();
+      for(let i=0;i<out.length;i+=3){
+        const a=out[i],b=out[i+1],c=out[i+2], m=[mid(a,b),mid(b,c),mid(c,a)], gx=(a[0]+b[0]+c[0])/3, gy=(a[1]+b[1]+c[1])/3;
+        m.forEach((p,k)=>{const x=gx+(p[0]-gx)*e,y=gy+(p[1]-gy)*e; k?ctx.lineTo(x,y):ctx.moveTo(x,y);}); ctx.closePath();
+      }
+      ctx.fillStyle='#000'; ctx.fill();
+    }
+    ctx.globalCompositeOperation='destination-over'; ctx.beginPath();
+    ctx.moveTo(g.A[0],g.A[1]);ctx.lineTo(g.B[0],g.B[1]);ctx.lineTo(g.C[0],g.C[1]);ctx.closePath();
+    ctx.fillStyle='rgba(255,255,255,.06)'; ctx.fill(); ctx.globalCompositeOperation='source-over';
+    lbl.innerHTML=`Крок <b>${L}</b> · трикутників: <b>${Math.pow(3,L).toLocaleString('uk-UA')}</b>`;
+  }
+  function frame(ts){
+    const dt=Math.min(.05,(ts-last)/1000||0); last=ts;
+    if(auto){
+      if(L>=MAX){ wait+=dt; if(wait>2.2){wait=0;L=0;t=0;} }
+      else { t+=dt/.95; if(t>=1){t=0;L++;} }
+    }
+    draw(); raf=requestAnimationFrame(frame);
+  }
+  $('#b-next').onclick=e=>{L=Math.min(MAX,L+1);t=0;e.target.blur()};
+  $('#b-prev').onclick=e=>{L=Math.max(0,L-1);t=0;e.target.blur()};
+  $('#b-auto').onclick=e=>{auto=!auto;e.target.textContent=auto?'⏸':'▶';e.target.blur()};
+  return {start(){S=setupCanvas(cv);L=0;t=0;wait=0;last=performance.now();cancelAnimationFrame(raf);raf=requestAnimationFrame(frame)},stop(){cancelAnimationFrame(raf)}};
+})();
+
+/* --- chaos game --- */
+const chaos=(function(){
+  const cv=$('#c-chaos'), lbl=$('#chaos-lbl'), cols=['#9fb8c4','#a9b4cc','#c9b0ac'], LIMIT=140000;
+  let S,g,V,px,py,count,raf=0,fr=0;
+  function init(){
+    S=setupCanvas(cv); g=triGeom(S.W,S.H); V=[g.A,g.B,g.C]; S.ctx.clearRect(0,0,S.W,S.H);
+    px=g.A[0]+Math.random()*20; py=g.B[1]-Math.random()*20; count=0; fr=0;
+    V.forEach((v,i)=>{S.ctx.beginPath();S.ctx.arc(v[0],v[1],6,0,7);S.ctx.fillStyle=cols[i];S.ctx.shadowColor=cols[i];S.ctx.shadowBlur=3;S.ctx.fill();});
+    S.ctx.shadowBlur=0;
+  }
+  function frame(){
+    const ctx=S.ctx;
+    if(count<LIMIT){
+      let it=count<30?1:count<400?10:Math.min(500,count/80+120);
+      if(count<30 && (fr++%7)) { raf=requestAnimationFrame(frame); return; }
+      for(let i=0;i<it;i++){
+        const k=(Math.random()*3)|0, v=V[k]; px=(px+v[0])/2; py=(py+v[1])/2;
+        ctx.fillStyle=cols[k];
+        if(count<60){ctx.shadowColor=cols[k];ctx.shadowBlur=3;ctx.beginPath();ctx.arc(px,py,3,0,7);ctx.fill();ctx.shadowBlur=0;}
+        else ctx.fillRect(px,py,1.4,1.4);
+        count++;
+      }
+      lbl.innerHTML=`Точок: <b>${count.toLocaleString('uk-UA')}</b>`;
+    }
+    raf=requestAnimationFrame(frame);
+  }
+  $('#chaos-reset').onclick=e=>{init();e.target.blur()};
+  return {start(){cancelAnimationFrame(raf);init();raf=requestAnimationFrame(frame)},stop(){cancelAnimationFrame(raf)}};
+})();
+
+const demos={3:build,5:chaos};
+
+/* ================= 3D WORLD ================= */
+const poses=[
+  {x:4.3,y:-.2,z:0,s:1,spin:.35,cz:10},
+  {x:5.4,y:.2,z:-3,s:.9,spin:.3,cz:10},
+  {x:0,y:4.2,z:-11,s:1.5,spin:.25,cz:10},
+  {x:-5.5,y:3.2,z:-7,s:.6,spin:.3,cz:10},
+  {x:0,y:0,z:-10,s:1.8,spin:.2,cz:10},
+  {x:-6,y:-3,z:-6,s:.7,spin:.3,cz:10},
+  {x:3.9,y:0,z:1,s:.8,spin:.5,cz:9,breathe:true},
+  {x:0,y:0,z:-11,s:2,spin:.18,cz:10},
+  {x:0,y:0,z:-2,s:1.4,spin:.4,cz:10}
+];
+function init3D(){
+  const canvas=$('#bg3d');
+  const renderer=new THREE.WebGLRenderer({canvas,antialias:true,alpha:true});
+  renderer.setPixelRatio(Math.min(devicePixelRatio,matchMedia('(pointer:coarse)').matches?1.5:1.8)); renderer.setSize(innerWidth,innerHeight,false); renderer.setClearColor(0x000000,0);
+  const scene=new THREE.Scene(); scene.fog=new THREE.FogExp2(0x0d1220,0.026);
+  const camera=new THREE.PerspectiveCamera(55,innerWidth/innerHeight,.1,400); camera.position.set(0,0,10);
+
+  scene.add(new THREE.AmbientLight(0x8fa0c4,.8));
+  const l1=new THREE.PointLight(0xa9bfca,.8,0); scene.add(l1);
+  const l2=new THREE.PointLight(0xcfb8b3,.6,0); scene.add(l2);
+  const l3=new THREE.PointLight(0xe0d4b4,.35,0); l3.position.set(0,8,6); scene.add(l3);
+
+  /* Sierpinski tetrahedron */
+  const dirs=[[1,1,1],[-1,-1,1],[-1,1,-1],[1,-1,-1]], LV=5, data=[];
+  (function r(cx,cy,cz,s,l){ if(l===0){data.push(cx,cy,cz,s);return}
+    for(const d of dirs) r(cx+d[0]*s/2,cy+d[1]*s/2,cz+d[2]*s/2,s/2,l-1);
+  })(0,0,0,2,LV);
+  const count=data.length/4;
+  const geo=new THREE.TetrahedronGeometry(Math.sqrt(3),0);
+  const mat=new THREE.MeshStandardMaterial({color:0xffffff,metalness:.15,roughness:.45,flatShading:true,emissive:0x101a30,emissiveIntensity:.35});
+  const mesh=new THREE.InstancedMesh(geo,mat,count); mesh.frustumCulled=false;
+  const col=new THREE.Color(), rnd=new Float32Array(count*3);
+  for(let i=0;i<count;i++){
+    const k=i*4; col.setHSL(0.52+((data[k]+data[k+1]*.5+2.5)/9)*.08,.22,.64); mesh.setColorAt(i,col);
+    rnd[i*3]=(Math.random()-.5)*6; rnd[i*3+1]=(Math.random()-.5)*6; rnd[i*3+2]=(Math.random()-.5)*6;
+  }
+  mesh.instanceColor.needsUpdate=true;
+  const dummy=new THREE.Object3D();
+  function setMat(ex){
+    for(let i=0;i<count;i++){
+      const k=i*4,f=1+ex;
+      dummy.position.set(data[k]*f,data[k+1]*f,data[k+2]*f);
+      dummy.rotation.set(rnd[i*3]*ex,rnd[i*3+1]*ex,rnd[i*3+2]*ex);
+      dummy.scale.setScalar(data[k+3]); dummy.updateMatrix(); mesh.setMatrixAt(i,dummy.matrix);
+    }
+    mesh.instanceMatrix.needsUpdate=true;
+  }
+  let ex=3, exTarget=0; setMat(ex);
+  const group=new THREE.Group(); group.add(mesh); scene.add(group);
+  group.position.set(4.3,-.2,0);
+
+  const rings=[]; [[4.6,0x9fb8c4],[5.6,0xc9b0ac]].forEach(([rad,c],i)=>{
+    const m=new THREE.Mesh(new THREE.TorusGeometry(rad,.015,8,120),new THREE.MeshBasicMaterial({color:c,transparent:true,opacity:.15}));
+    m.rotation.x=1.2+i*.5; group.add(m); rings.push(m);
+  });
+
+  /* grid floor */
+  const grid=new THREE.GridHelper(160,80,0x4a5c7c,0x1e2a42); grid.position.y=-5.5;
+  grid.material.transparent=true; grid.material.opacity=.2; scene.add(grid);
+
+  /* stars */
+  const sp=new Float32Array(3500*3);
+  for(let i=0;i<3500;i++){ const r=40+Math.random()*120,a=Math.random()*6.283,b=Math.acos(2*Math.random()-1);
+    sp[i*3]=r*Math.sin(b)*Math.cos(a); sp[i*3+1]=r*Math.sin(b)*Math.sin(a); sp[i*3+2]=r*Math.cos(b); }
+  const sg=new THREE.BufferGeometry(); sg.setAttribute('position',new THREE.BufferAttribute(sp,3));
+  const stars=new THREE.Points(sg,new THREE.PointsMaterial({size:.28,color:0xcfd6e4,transparent:true,opacity:.4,sizeAttenuation:true,fog:false}));
+  scene.add(stars);
+
+  /* floating wire shards */
+  const shGeos=[new THREE.TetrahedronGeometry(1),new THREE.OctahedronGeometry(1),new THREE.IcosahedronGeometry(1)], shards=[];
+  for(let i=0;i<22;i++){
+    const m=new THREE.Mesh(shGeos[i%3],new THREE.MeshBasicMaterial({color:new THREE.Color().setHSL(.52+Math.random()*.15,.35,.65),wireframe:true,transparent:true,opacity:.14}));
+    m.position.set((Math.random()-.5)*60,(Math.random()-.4)*24,-45+Math.random()*50);
+    m.scale.setScalar(.3+Math.random()*1.4); m.userData={rx:(Math.random()-.5),ry:(Math.random()-.5),fy:Math.random()*6,fa:.3+Math.random()*.6};
+    scene.add(m); shards.push(m);
+  }
+
+  let yaw=0,userYaw=0,userPitch=0,yawV=0,pitchV=0,warp=0,roll=0,rollT=0,poseI=0,clock=0,tgt={x:4.3,y:-.2,z:0,s:1}, lastEx=-1;
+  const lerp=(a,b,t)=>a+(b-a)*t;
+
+  function frame(dt,t){
+    clock=t; const P=poses[poseI]||poses[0];
+    const asp=innerWidth/innerHeight, k=Math.min(1,asp/1.5);
+    group.position.x=lerp(group.position.x,P.x*k,.05);
+    group.position.y=lerp(group.position.y,P.y+(asp<1?2:0),.05);
+    group.position.z=lerp(group.position.z,P.z,.05);
+    const ss=lerp(group.scale.x,P.s*(asp<1?.7:1),.05); group.scale.setScalar(ss);
+    yaw+=P.spin*dt; userYaw+=yawV; yawV*=.94; userPitch=Math.max(-1,Math.min(1,userPitch+pitchV)); pitchV*=.94; userPitch*=.995;
+    group.rotation.y=yaw+userYaw; group.rotation.x=.35+Math.sin(t*.4)*.12+userPitch;
+    rings[0].rotation.z+=dt*.4; rings[1].rotation.z-=dt*.3;
+
+    exTarget=P.breathe?(.5+.5*Math.sin(t*.9-1.2))*.7:0;
+    ex=lerp(ex,exTarget,P.breathe?.08:.035);
+    if(Math.abs(ex-lastEx)>.0008){setMat(ex);lastEx=ex;}
+
+    l1.position.set(Math.cos(t*.6)*9,Math.sin(t*.4)*5,Math.sin(t*.6)*9);
+    l2.position.set(Math.cos(t*.5+3)*9,Math.cos(t*.3)*5,Math.sin(t*.5+3)*9);
+
+    warp*=.94; roll=lerp(roll,rollT,.08); rollT*=.92;
+    camera.fov=55+warp*10; camera.updateProjectionMatrix();
+    camera.position.x=lerp(camera.position.x,mx*1.6,.06);
+    camera.position.y=lerp(camera.position.y,-my*1.0,.06);
+    camera.position.z=lerp(camera.position.z,P.cz,.04);
+    camera.lookAt(0,0,0); camera.rotateZ(roll);
+
+    stars.rotation.y+=dt*(.012+warp*.12); stars.rotation.x+=dt*(.004+warp*.03);
+    grid.position.z=(t*(1.0+warp*6))%2;
+    shards.forEach(m=>{m.rotation.x+=m.userData.rx*dt;m.rotation.y+=m.userData.ry*dt;m.position.y+=Math.sin(t*m.userData.fa+m.userData.fy)*.003;});
+    renderer.render(scene,camera);
+  }
+  addEventListener('resize',()=>{renderer.setSize(innerWidth,innerHeight,false);camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();});
+  return {
+    frame,
+    pose(i,dir){poseI=i;warp=1;rollT=.06*dir;},
+    restart(){ex=3;lastEx=-1;yaw=0;warp=1.2;},
+    drag(dx,dy){yawV+=dx*.0012;pitchV+=dy*.0009;}
+  };
+}
+if(window.THREE){ try{ api=init3D(); }catch(e){ console.warn('3D не запустився',e); } }
+else console.warn('Three.js не завантажився — потрібен інтернет для 3D-фону.');
+
+/* drag to rotate */
+let drag=false,lx=0,ly=0;
+addEventListener('pointerdown',e=>{ if(e.target.closest('button,.nav,.card')) return; drag=true;lx=e.clientX;ly=e.clientY; });
+addEventListener('pointerup',()=>drag=false);
+addEventListener('pointermove',e=>{ if(drag&&api){ api.drag(e.clientX-lx,e.clientY-ly); lx=e.clientX; ly=e.clientY; }});
+
+/* ================= NAVIGATION ================= */
+const dots=$('#dots');
+slides.forEach((_,i)=>{ const b=document.createElement('button'); b.setAttribute('aria-label','Слайд '+(i+1)); b.onclick=()=>go(i); dots.appendChild(b); });
+$('#ct').textContent=String(N).padStart(2,'0');
+
+function go(i){
+  i=Math.max(0,Math.min(N-1,i)); if(i===cur) return;
+  const dir=i>cur?1:-1;
+  if(demos[cur]) demos[cur].stop();
+  slides.forEach((s,k)=>{ s.classList.toggle('active',k===i); s.classList.toggle('past',k<i); s.classList.toggle('future',k>i); });
+  cur=i;
+  $$('#dots button').forEach((b,k)=>b.classList.toggle('on',k===i));
+  $('#bar').style.width=((i+1)/N*100)+'%';
+  $('#cn').textContent=String(i+1).padStart(2,'0');
+  history.replaceState(null,'','#'+(i+1));
+  if(api) api.pose(i,dir);
+  if(demos[i]) setTimeout(()=>{ if(cur===i) demos[i].start(); },450);
+  $$('.cnt',slides[i]).forEach(countUp);
+}
+const next=()=>go(cur+1), prev=()=>go(cur-1);
+$('#next').onclick=e=>{next();e.currentTarget.blur()};
+$('#prev').onclick=e=>{prev();e.currentTarget.blur()};
+$('#fs').onclick=e=>{toggleFS();e.currentTarget.blur()};
+async function enterFS(){
+  const el=document.documentElement;
+  try{
+    if(el.requestFullscreen) await el.requestFullscreen({navigationUI:'hide'});
+    else if(el.webkitRequestFullscreen) el.webkitRequestFullscreen();
+  }catch(e){}
+  try{ if(screen.orientation&&screen.orientation.lock) await screen.orientation.lock('landscape'); }catch(e){}
+}
+function toggleFS(){
+  if(document.fullscreenElement||document.webkitFullscreenElement){
+    (document.exitFullscreen||document.webkitExitFullscreen||function(){}).call(document);
+    try{screen.orientation&&screen.orientation.unlock&&screen.orientation.unlock();}catch(e){}
+  } else enterFS();
+}
+let started=false;
+
+addEventListener('keydown',e=>{
+  const k=e.key;
+  if(!started){ if(k===' '||k==='Enter'){ e.preventDefault(); const b=$('#ld-start'); if(!b.hidden) b.click(); } return; }
+  if(k===' '||k==='Spacebar'){ e.preventDefault(); e.shiftKey?prev():next(); }
+  else if(['ArrowRight','ArrowDown','PageDown','Enter'].includes(k)){ e.preventDefault(); next(); }
+  else if(['ArrowLeft','ArrowUp','PageUp','Backspace'].includes(k)){ e.preventDefault(); prev(); }
+  else if(k==='Home'){ go(0); }
+  else if(k==='End'){ go(N-1); }
+  else if(k==='f'||k==='F'||k==='а'||k==='А'){ toggleFS(); }
+});
+let tx=0,ty=0;
+addEventListener('touchstart',e=>{tx=e.touches[0].clientX;ty=e.touches[0].clientY},{passive:true});
+addEventListener('touchend',e=>{ const dx=e.changedTouches[0].clientX-tx, dy=e.changedTouches[0].clientY-ty;
+  if(Math.abs(dx)>60&&Math.abs(dx)>Math.abs(dy)) dx<0?next():prev(); },{passive:true});
+let wl=0;
+addEventListener('wheel',e=>{ const n=performance.now(); if(n-wl<900||Math.abs(e.deltaY)<30) return; wl=n; e.deltaY>0?next():prev(); },{passive:true});
+
+addEventListener('resize',()=>{ if(demos[cur]) demos[cur].start(); });
+
+/* ---------- main loop ---------- */
+let last=performance.now();
+function loop(now){
+  const dt=Math.min(.05,(now-last)/1000); last=now;
+  parallax(); if(api) api.frame(dt,now/1000);
+  requestAnimationFrame(loop);
+}
+requestAnimationFrame(loop);
+
+/* ---------- loader → fullscreen start ---------- */
+(function(){
+  const loader=$('#loader'), fill=$('#ld-fill'), txt=$('#ld-txt'), btn=$('#ld-start');
+  // logo: Sierpinski triangle in the loader
+  const out=[]; rec([50,2],[2,86],[98,86],4,out);
+  $('#ld-path').setAttribute('d',out.map(p=>p[0].toFixed(2)+','+p[1].toFixed(2)).reduce((acc,v,i)=>acc+(i%3===0?'M':'L')+v+(i%3===2?'Z':''),''));
+  const stages=[[0,'Завантаження 3D-світу…'],[35,'Будуємо тетраедр Серпінського…'],[70,'Готуємо анімації…'],[96,'Майже готово…']];
+  let p=0, loaded=document.readyState==='complete';
+  if(!loaded) addEventListener('load',()=>{loaded=true});
+  const t0=performance.now();
+  (function tick(){
+    const el=performance.now()-t0, target=Math.min(100,el/2200*100);
+    p=Math.min(target,loaded||el>6000?100:92);
+    fill.style.width=p+'%';
+    let s=stages[0][1]; stages.forEach(([th,t])=>{if(p>=th)s=t;});
+    txt.textContent=(p>=100?'Готово!':s)+' '+Math.floor(p)+'%';
+    if(p<100) requestAnimationFrame(tick);
+    else { btn.hidden=false; $('.ld-rot').style.opacity=1; }
+  })();
+  const startIdx=Math.max(0,Math.min(N-1,(parseInt(location.hash.slice(1))||1)-1));
+  btn.addEventListener('click',()=>{
+    if(started) return; started=true;
+    enterFS();                       // повноекранний режим + горизонтальна орієнтація (потрібен жест користувача)
+    loader.classList.add('hide');
+    if(api&&api.restart) api.restart();
+    setTimeout(()=>go(startIdx),350);
+    setTimeout(()=>loader.remove(),1200);
+  });
+})();
+})();
+</script>
+</body>
+</html>
